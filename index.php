@@ -171,138 +171,262 @@ if ($relDir !== '') {
         $migas[] = [$parte, $acum];
     }
 }
+
+/** Clase de color según extensión (solo estética). */
+function claseExt(string $ext): string
+{
+    $mapa = [
+        'html' => 'html', 'htm' => 'html', 'php' => 'php',
+        'css' => 'css', 'js' => 'js', 'ts' => 'js', 'tsx' => 'js', 'jsx' => 'js', 'vue' => 'js',
+        'json' => 'data', 'xml' => 'data', 'yml' => 'data', 'yaml' => 'data', 'csv' => 'data', 'sql' => 'data',
+        'md' => 'doc', 'txt' => 'doc', 'log' => 'doc',
+        'png' => 'img', 'jpg' => 'img', 'jpeg' => 'img', 'gif' => 'img', 'webp' => 'img', 'svg' => 'img', 'ico' => 'img',
+    ];
+    return 'e-' . ($mapa[$ext] ?? 'otro');
+}
+
+function seEjecuta(string $ext): bool
+{
+    return in_array($ext, ['html', 'htm', 'php', 'svg'], true);
+}
+
+/** Línea de código → un <span> por línea (para numerarlas con CSS). */
+function lineasCodigo(string $texto): string
+{
+    $out = '';
+    foreach (preg_split('/\r\n|\r|\n/', $texto) as $linea) {
+        $out .= '<span class="l">' . h($linea) . "</span>\n";
+    }
+    return $out;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title><?= h($nombreProyecto) ?> · Estructura del proyecto</title>
 <style>
 :root {
-    --fondo: #eef1f4;
-    --panel: #ffffff;
-    --lateral: #e4e9ee;
-    --tinta: #1b2733;
-    --tinta-suave: #5b6b7b;
-    --linea: #d3dbe3;
-    --acento: #1f5f8b;
-    --acento-fondo: #d6e6f2;
-    --carpeta: #c0801a;
-    --codigo-fondo: #f6f8fa;
-    --radio: 6px;
-}
-@media (prefers-color-scheme: dark) {
-    :root {
-        --fondo: #151b22;
-        --panel: #1c242d;
-        --lateral: #19212a;
-        --tinta: #e3e9ef;
-        --tinta-suave: #93a3b3;
-        --linea: #2d3945;
-        --acento: #6db3e3;
-        --acento-fondo: #22384a;
-        --carpeta: #e0a244;
-        --codigo-fondo: #151b22;
-    }
+    --fondo: #050506;
+    --lateral: #0a0a0c;
+    --panel: #0e0e11;
+    --panel-2: #141418;
+    --linea: #1f1f27;
+    --linea-fuerte: #2b2b36;
+    --tinta: #ececf1;
+    --tinta-suave: #8b8b99;
+    --acento: #8b7bff;
+    --acento-2: #22d3ee;
+    --acento-fondo: rgba(139, 123, 255, .12);
+    --carpeta: #f5b445;
+    --codigo-fondo: #08080a;
+    --radio: 10px;
+    color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
     margin: 0;
-    background: var(--fondo);
     color: var(--tinta);
+    background:
+        radial-gradient(900px 420px at 85% -8%, rgba(139, 123, 255, .13), transparent 70%),
+        radial-gradient(700px 360px at 0% 110%, rgba(34, 211, 238, .06), transparent 70%),
+        var(--fondo);
+    background-attachment: fixed;
     font: 15px/1.5 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 6px; }
+::selection { background: rgba(139, 123, 255, .35); }
+* { scrollbar-width: thin; scrollbar-color: #2b2b36 transparent; }
 
 .app { display: grid; grid-template-columns: 290px 1fr; min-height: 100%; }
 
-/* Menú lateral */
+/* ---------- Menú lateral ---------- */
 .lateral {
-    background: var(--lateral);
+    background: linear-gradient(180deg, var(--lateral), #070709);
     border-right: 1px solid var(--linea);
     padding: 20px 14px;
     position: sticky; top: 0; height: 100vh; overflow: auto;
 }
-.marca { display: block; padding: 4px 8px 16px; font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
-.marca small { display: block; font-weight: 400; color: var(--tinta-suave); font-size: 13px; }
+.marca {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 8px 18px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--linea);
+    overflow-wrap: anywhere;
+}
+.marca .logo {
+    flex: none; width: 38px; height: 38px; border-radius: 11px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--acento), var(--acento-2));
+    box-shadow: 0 6px 20px -6px rgba(139, 123, 255, .65);
+}
+.marca .logo svg { width: 20px; height: 20px; fill: none; stroke: #050506; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.marca strong { display: block; font-size: 16px; line-height: 1.2; }
+.marca small { display: block; font-weight: 400; color: var(--tinta-suave); font-size: 12.5px; }
+
 .lateral ul { list-style: none; margin: 0; padding: 0; }
 .lateral ul ul { margin-left: 14px; padding-left: 8px; border-left: 1px solid var(--linea); }
 .nodo {
-    display: flex; align-items: center; gap: 6px;
-    padding: 5px 8px; border-radius: var(--radio);
-    overflow-wrap: anywhere;
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 9px; border-radius: 8px; margin: 1px 0;
+    color: #c9c9d3; overflow-wrap: anywhere;
+    transition: background .15s, color .15s, transform .15s;
 }
-.nodo:hover { background: var(--acento-fondo); }
-.nodo.actual { background: var(--acento-fondo); color: var(--acento); font-weight: 600; }
+.nodo:hover { background: var(--panel-2); color: #fff; }
+.nodo.actual {
+    background: var(--acento-fondo); color: #fff; font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--acento);
+}
 .nodo.raiz { font-weight: 600; }
 .chev { width: 10px; height: 10px; flex: none; position: relative; }
 .chev::before {
     content: ""; position: absolute; inset: 1px 2px 1px 1px;
     border-right: 1.6px solid var(--tinta-suave); border-bottom: 1.6px solid var(--tinta-suave);
-    transform: rotate(-45deg);
+    transform: rotate(-45deg); transition: transform .15s;
 }
 .nodo.abierto > .chev::before { transform: rotate(45deg); inset: 0 2px 2px 1px; }
 
 .ico { width: 18px; height: 18px; flex: none; }
-.ico.carpeta { fill: var(--carpeta); }
-.ico.archivo { color: var(--tinta-suave); }
+.ico.carpeta { fill: var(--carpeta); filter: drop-shadow(0 0 6px rgba(245, 180, 69, .25)); }
+.ico.archivo { color: inherit; }
+.fi { display: inline-flex; }
 
-/* Contenido */
-main { padding: 28px clamp(16px, 4vw, 48px) 48px; min-width: 0; }
-.migas { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; font-size: 14px; margin-bottom: 6px; }
-.migas a { color: var(--acento); padding: 2px 4px; border-radius: 4px; }
-.migas a:hover { text-decoration: underline; }
-.migas .sep { color: var(--tinta-suave); }
-.migas .fin { font-weight: 600; padding: 2px 4px; }
-h1 { font-size: 26px; margin: 0 0 4px; overflow-wrap: anywhere; }
-.resumen { color: var(--tinta-suave); margin: 0 0 20px; }
+/* ---------- Contenido ---------- */
+main { padding: 28px clamp(16px, 4vw, 48px) 56px; min-width: 0; max-width: 1200px; }
+.migas {
+    display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px;
+    font-size: 13.5px; margin-bottom: 16px;
+    padding: 5px 10px; border: 1px solid var(--linea); border-radius: 999px; background: var(--panel);
+}
+.migas a { color: var(--acento-2); padding: 1px 5px; border-radius: 6px; transition: background .15s; }
+.migas a:hover { background: rgba(34, 211, 238, .1); }
+.migas .sep { color: #4a4a58; }
+.migas .fin { font-weight: 600; padding: 1px 5px; }
+
+h1 { font-size: clamp(24px, 3.4vw, 32px); letter-spacing: -.02em; margin: 0 0 10px; overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+.chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 11px; font-size: 13px; color: var(--tinta-suave);
+    border: 1px solid var(--linea); border-radius: 999px; background: var(--panel);
+}
+.chip b { color: var(--tinta); font-weight: 600; }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--acento); }
+.chip i.c { background: var(--carpeta); }
+.chip i.a { background: var(--acento-2); }
 
 .herramientas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+.campo { position: relative; flex: 1 1 260px; max-width: 380px; }
+.campo svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: none; stroke: var(--tinta-suave); stroke-width: 2; stroke-linecap: round; }
 .buscar {
-    flex: 1 1 240px; max-width: 360px;
-    padding: 8px 12px; font: inherit;
-    border: 1px solid var(--linea); border-radius: var(--radio);
-    background: var(--panel); color: var(--tinta);
+    width: 100%; padding: 9px 12px 9px 36px; font: inherit; color: var(--tinta);
+    border: 1px solid var(--linea); border-radius: 999px; background: var(--panel);
+    transition: border-color .15s, box-shadow .15s;
 }
+.buscar::placeholder { color: #666674; }
+.buscar:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 4px rgba(139, 123, 255, .15); }
 .opcion { color: var(--tinta-suave); font-size: 14px; }
-.opcion a { color: var(--acento); text-decoration: underline; }
+.opcion a { color: var(--acento-2); }
+.opcion a:hover { text-decoration: underline; }
 
-.tabla-envoltura { background: var(--panel); border: 1px solid var(--linea); border-radius: var(--radio); overflow-x: auto; }
+/* Tabla */
+.tabla-envoltura {
+    background: var(--panel); border: 1px solid var(--linea); border-radius: 14px;
+    overflow-x: auto; box-shadow: 0 20px 50px -30px #000;
+}
 table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 10px 14px; white-space: nowrap; }
-th { font-size: 13px; font-weight: 600; color: var(--tinta-suave); border-bottom: 1px solid var(--linea); }
-tbody tr + tr td { border-top: 1px solid var(--linea); }
-tbody tr:hover { background: var(--acento-fondo); }
+th, td { text-align: left; padding: 11px 16px; white-space: nowrap; }
+th {
+    font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--tinta-suave); background: #0b0b0e; border-bottom: 1px solid var(--linea);
+}
+tbody tr { transition: background .15s; animation: entra .35s ease both; }
+tbody tr + tr td { border-top: 1px solid #17171d; }
+tbody tr:hover { background: #15151b; }
+tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--acento); }
+@keyframes entra { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+tbody tr:nth-child(n+2)  { animation-delay: .02s; }
+tbody tr:nth-child(n+4)  { animation-delay: .05s; }
+tbody tr:nth-child(n+7)  { animation-delay: .08s; }
+tbody tr:nth-child(n+11) { animation-delay: .11s; }
+
 td.nombre { white-space: normal; min-width: 220px; overflow-wrap: anywhere; }
-td.nombre a, td.nombre .item { display: inline-flex; align-items: center; gap: 10px; }
-td.nombre a:hover span { text-decoration: underline; }
+td.nombre a { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; }
+td.nombre a:hover span:last-child { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 td.num, th.num { text-align: right; }
 td.meta { color: var(--tinta-suave); font-size: 14px; }
-.acciones a { color: var(--acento); font-size: 14px; }
-.acciones a:hover { text-decoration: underline; }
-.vacio { padding: 28px; text-align: center; color: var(--tinta-suave); }
+
+.tag {
+    display: inline-block; padding: 1px 8px; border-radius: 6px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+    color: var(--c, var(--tinta-suave));
+    background: color-mix(in srgb, var(--c, #8b8b99) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c, #8b8b99) 28%, transparent);
+}
+.tag.dir { --c: var(--carpeta); }
+
+/* Colores por tipo de archivo */
+.e-html { --c: #ff7a45; } .e-php  { --c: #9a8cff; } .e-css  { --c: #4fb3ff; }
+.e-js   { --c: #f5d547; } .e-data { --c: #4ade80; } .e-doc  { --c: #cbd5e1; }
+.e-img  { --c: #f472b6; } .e-otro { --c: #8b8b99; }
+.fi { color: var(--c, #8b8b99); }
+
+.acciones { display: flex; gap: 6px; align-items: center; }
+.btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; font-size: 13px; font-weight: 500; line-height: 1.4;
+    color: #d8d8e2; background: var(--panel-2); border: 1px solid var(--linea-fuerte);
+    border-radius: 999px; cursor: pointer; font-family: inherit;
+    transition: background .15s, border-color .15s, color .15s, transform .15s;
+}
+.btn:hover { border-color: var(--acento); color: #fff; background: var(--acento-fondo); transform: translateY(-1px); }
+.btn.primario { color: #08080a; border-color: transparent; background: linear-gradient(135deg, var(--acento), var(--acento-2)); font-weight: 600; }
+.btn.primario:hover { color: #08080a; filter: brightness(1.1); background: linear-gradient(135deg, var(--acento), var(--acento-2)); }
+.btn svg { width: 13px; height: 13px; fill: currentColor; }
+
+.vacio { padding: 36px; text-align: center; color: var(--tinta-suave); }
 .sin-resultados { display: none; }
 
-/* Vista de código */
-.aviso { padding: 12px 16px; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--panel); }
-.codigo-barra { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-.codigo-barra a { color: var(--acento); }
-.codigo-barra a:hover { text-decoration: underline; }
-pre.codigo {
-    margin: 0; padding: 16px; overflow: auto; max-height: 75vh;
-    background: var(--codigo-fondo); border: 1px solid var(--linea); border-radius: var(--radio);
-    font: 13px/1.55 ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
-    tab-size: 4;
+/* ---------- Vista de código ---------- */
+.aviso { padding: 12px 16px; border: 1px solid #5b2430; border-radius: var(--radio); background: #1a0b10; color: #ffb4c0; }
+.codigo-barra { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.codigo-barra .grupo { display: flex; gap: 8px; flex-wrap: wrap; }
+.codigo-caja { border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; background: var(--codigo-fondo); box-shadow: 0 20px 50px -30px #000; }
+.codigo-cabecera {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: #0d0d11; border-bottom: 1px solid var(--linea);
+    font-size: 13px; color: var(--tinta-suave);
 }
+.codigo-cabecera .pt { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
+.codigo-cabecera .pt:nth-child(2) { background: #febc2e; }
+.codigo-cabecera .pt:nth-child(3) { background: #28c840; }
+.codigo-cabecera span.n { margin-left: 8px; }
+pre.codigo {
+    margin: 0; padding: 14px 0; overflow: auto; max-height: 72vh;
+    font: 13px/1.6 ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, Menlo, monospace;
+    tab-size: 4; counter-reset: n; color: #d6d6e0;
+}
+pre.codigo code { display: block; min-width: max-content; }
+.l { display: block; padding: 0 18px 0 0; min-height: 1.6em; counter-increment: n; }
+.l::before {
+    content: counter(n); display: inline-block; width: 52px; margin-right: 16px; padding-right: 12px;
+    text-align: right; color: #4a4a58; border-right: 1px solid #17171d; user-select: none;
+}
+.l:hover { background: #101015; }
+.l:hover::before { color: var(--acento); }
 
 /* Móvil */
 @media (max-width: 800px) {
     .app { grid-template-columns: 1fr; }
     .lateral { position: static; height: auto; max-height: 45vh; border-right: 0; border-bottom: 1px solid var(--linea); }
     th.col-fecha, td.col-fecha { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 </style>
 </head>
@@ -312,8 +436,11 @@ pre.codigo {
     <!-- Menú de navegación -->
     <nav class="lateral" aria-label="Estructura de carpetas">
         <a class="marca" href="<?= h(enlace([])) ?>">
-            <?= h($nombreProyecto) ?>
-            <small>Raíz del proyecto</small>
+            <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 7 3 12l5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></span>
+            <span>
+                <strong><?= h($nombreProyecto) ?></strong>
+                <small>Raíz del proyecto</small>
+            </span>
         </a>
         <ul>
             <li>
@@ -345,27 +472,41 @@ pre.codigo {
         <?php if ($verContenido !== null): ?>
 
             <h1><?= h(basename($verRel)) ?></h1>
-            <p class="resumen"><?= h(tamano(filesize($verAbs))) ?> · modificado el <?= date('d/m/Y H:i', filemtime($verAbs)) ?></p>
-            <div class="codigo-barra">
-                <a href="<?= h(enlace(['dir' => $relDir])) ?>">Volver a la carpeta</a>
-                <a href="<?= h(urlArchivo($verRel)) ?>" target="_blank" rel="noopener">Abrir archivo en el navegador</a>
+            <div class="chips">
+                <span class="chip"><i></i><b><?= h(tamano(filesize($verAbs))) ?></b></span>
+                <span class="chip"><i class="a"></i>modificado el <b><?= date('d/m/Y H:i', filemtime($verAbs)) ?></b></span>
             </div>
-            <pre class="codigo"><code><?= h($verContenido) ?></code></pre>
+            <div class="codigo-barra">
+                <a class="btn" href="<?= h(enlace(['dir' => $relDir])) ?>">← Volver a la carpeta</a>
+                <div class="grupo">
+                    <button class="btn" type="button" id="copiar">Copiar código</button>
+                    <a class="btn primario" href="<?= h(urlArchivo($verRel)) ?>" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Abrir en el navegador
+                    </a>
+                </div>
+            </div>
+            <div class="codigo-caja">
+                <div class="codigo-cabecera"><span class="pt"></span><span class="pt"></span><span class="pt"></span><span class="n"><?= h(basename($verRel)) ?></span></div>
+                <pre class="codigo"><code id="codigo"><?= lineasCodigo($verContenido) ?></code></pre>
+            </div>
 
         <?php else: ?>
 
             <h1><?= $relDir === '' ? h($nombreProyecto) : h(basename($relDir)) ?></h1>
-            <p class="resumen">
-                <?= count($carpetas) ?> <?= count($carpetas) === 1 ? 'carpeta' : 'carpetas' ?>
-                y <?= count($archivos) ?> <?= count($archivos) === 1 ? 'archivo' : 'archivos' ?>
-            </p>
+            <div class="chips">
+                <span class="chip"><i class="c"></i><b><?= count($carpetas) ?></b> <?= count($carpetas) === 1 ? 'carpeta' : 'carpetas' ?></span>
+                <span class="chip"><i class="a"></i><b><?= count($archivos) ?></b> <?= count($archivos) === 1 ? 'archivo' : 'archivos' ?></span>
+            </div>
 
             <?php if ($verError): ?>
                 <p class="aviso" role="alert"><?= h($verError) ?></p><br>
             <?php endif; ?>
 
             <div class="herramientas">
-                <input class="buscar" type="search" id="filtro" placeholder="Filtrar por nombre" aria-label="Filtrar por nombre" autocomplete="off">
+                <div class="campo">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input class="buscar" type="search" id="filtro" placeholder="Filtrar por nombre" aria-label="Filtrar por nombre" autocomplete="off">
+                </div>
                 <span class="opcion">
                     <?php if ($mostrarOcultos): ?>
                         Mostrando archivos ocultos ·
@@ -397,7 +538,7 @@ pre.codigo {
                             <td class="nombre">
                                 <a href="<?= h(enlace(['dir' => $padre])) ?>"><?= ICONO_CARPETA ?><span>..  (subir un nivel)</span></a>
                             </td>
-                            <td class="meta">Carpeta</td><td class="meta num">—</td><td class="meta col-fecha">—</td><td></td>
+                            <td class="meta"><span class="tag dir">CARPETA</span></td><td class="meta num">—</td><td class="meta col-fecha">—</td><td></td>
                         </tr>
                     <?php endif; ?>
 
@@ -407,26 +548,30 @@ pre.codigo {
                             <td class="nombre">
                                 <a href="<?= h(enlace(['dir' => $rel])) ?>"><?= ICONO_CARPETA ?><span><?= h($c) ?></span></a>
                             </td>
-                            <td class="meta">Carpeta</td>
+                            <td class="meta"><span class="tag dir">CARPETA</span></td>
                             <td class="meta num">—</td>
                             <td class="meta col-fecha"><?= date('d/m/Y H:i', (int) filemtime($absDir . '/' . $c)) ?></td>
-                            <td class="acciones"><a href="<?= h(enlace(['dir' => $rel])) ?>">Abrir</a></td>
+                            <td class="acciones"><a class="btn" href="<?= h(enlace(['dir' => $rel])) ?>">Abrir</a></td>
                         </tr>
                     <?php endforeach; ?>
 
                     <?php foreach ($archivos as $a):
                         $rel = ($relDir === '' ? '' : $relDir . '/') . $a;
-                        $ext = strtolower(pathinfo($a, PATHINFO_EXTENSION)); ?>
+                        $ext = strtolower(pathinfo($a, PATHINFO_EXTENSION));
+                        $cls = claseExt($ext); ?>
                         <tr data-nombre="<?= h(strtolower($a)) ?>">
                             <td class="nombre">
-                                <a href="<?= h(urlArchivo($rel)) ?>" target="_blank" rel="noopener"><?= ICONO_ARCHIVO ?><span><?= h($a) ?></span></a>
+                                <a href="<?= h(urlArchivo($rel)) ?>" target="_blank" rel="noopener"><span class="fi <?= $cls ?>"><?= ICONO_ARCHIVO ?></span><span><?= h($a) ?></span></a>
                             </td>
-                            <td class="meta"><?= $ext !== '' ? h(strtoupper($ext)) : 'Archivo' ?></td>
+                            <td class="meta"><span class="tag <?= $cls ?>"><?= $ext !== '' ? h(strtoupper($ext)) : 'ARCHIVO' ?></span></td>
                             <td class="meta num"><?= h(tamano((int) filesize($absDir . '/' . $a))) ?></td>
                             <td class="meta col-fecha"><?= date('d/m/Y H:i', (int) filemtime($absDir . '/' . $a)) ?></td>
                             <td class="acciones">
+                                <?php if (seEjecuta($ext)): ?>
+                                    <a class="btn primario" href="<?= h(urlArchivo($rel)) ?>" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Ejecutar</a>
+                                <?php endif; ?>
                                 <?php if (esTexto($a)): ?>
-                                    <a href="<?= h(enlace(['ver' => $rel])) ?>">Ver código</a>
+                                    <a class="btn" href="<?= h(enlace(['ver' => $rel])) ?>">Ver código</a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -447,18 +592,37 @@ pre.codigo {
 <script>
 (function () {
     var filtro = document.getElementById('filtro');
-    if (!filtro) return;
-    var filas = document.querySelectorAll('#tabla tbody tr[data-nombre]');
-    var aviso = document.getElementById('sinResultados');
-    filtro.addEventListener('input', function () {
-        var q = filtro.value.trim().toLowerCase(), visibles = 0;
-        filas.forEach(function (tr) {
-            var ok = tr.getAttribute('data-nombre').indexOf(q) !== -1;
-            tr.style.display = ok ? '' : 'none';
-            if (ok) visibles++;
+    if (filtro) {
+        var filas = document.querySelectorAll('#tabla tbody tr[data-nombre]');
+        var aviso = document.getElementById('sinResultados');
+        filtro.addEventListener('input', function () {
+            var q = filtro.value.trim().toLowerCase(), visibles = 0;
+            filas.forEach(function (tr) {
+                var ok = tr.getAttribute('data-nombre').indexOf(q) !== -1;
+                tr.style.display = ok ? '' : 'none';
+                if (ok) visibles++;
+            });
+            if (aviso) aviso.style.display = (visibles === 0 && filas.length) ? 'block' : 'none';
         });
-        if (aviso) aviso.style.display = (visibles === 0 && filas.length) ? 'block' : 'none';
-    });
+    }
+
+    var copiar = document.getElementById('copiar');
+    if (copiar) {
+        copiar.addEventListener('click', function () {
+            var texto = Array.prototype.map.call(document.querySelectorAll('#codigo .l'), function (l) { return l.textContent; }).join('\n');
+            var listo = function () {
+                copiar.textContent = '¡Copiado!';
+                setTimeout(function () { copiar.textContent = 'Copiar código'; }, 1600);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(texto).then(listo);
+            } else {
+                var t = document.createElement('textarea');
+                t.value = texto; document.body.appendChild(t); t.select();
+                document.execCommand('copy'); document.body.removeChild(t); listo();
+            }
+        });
+    }
 })();
 </script>
 </body>
