@@ -9,7 +9,7 @@ function calcularEnvio(string $zona): float {
         case 'sur':
             return 15.00;
         case 'centro':
-            return 5.00;
+            return 5.00;        
         default:
             return 25.00; 
     }

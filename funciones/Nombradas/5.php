@@ -1,15 +1,18 @@
 <?php
-function calcularPropina(float $consumo, float $porcentajePropina): array {
+function calcularPropina(float $consumo, float $porcentajePropina): float {
     $propina = $consumo * ($porcentajePropina / 100);
-    $total = $consumo + $propina;
-    return ["propina" => round($propina, 2), "total" => round($total, 2)];
+    return round($propina, 2);
 }
 
-$resultado = null;
+$propina = null;
+$total = null;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $consumo = floatval($_POST['consumo']);
     $porcentaje = floatval($_POST['porcentaje']);
-    $resultado = calcularPropina($consumo, $porcentaje);
+    
+    $propina = calcularPropina($consumo, $porcentaje);
+    $total = round($consumo + $propina, 2);
 }
 ?>
 <!DOCTYPE html>
@@ -21,9 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label>Porcentaje de propina (%):</label> <input type="number" name="porcentaje" value="10" required><br><br>
         <button type="submit">Calcular</button>
     </form>
-    <?php if ($resultado): ?>
-        <p>Propina: $<?php echo $resultado['propina']; ?></p>
-        <p>Total a pagar: $<?php echo $resultado['total']; ?></p>
+    <?php if ($propina !== null): ?>
+        <p>Propina: $<?php echo $propina; ?></p>
+        <p>Total a pagar: $<?php echo $total; ?></p>
     <?php endif; ?>
 </body>
 </html>
